@@ -1,0 +1,274 @@
+version: '2.1'
+
+networks:
+  brcoin-network:
+    name: brcoin-network
+    ipam:
+      driver: default
+      config: 
+        - subnet: 123.133.134.0/16
+
+services:
+  orderer0.orgorderer.com:
+    container_name: orderer0.orgorderer.com
+    extends:
+      file: peer-base.yaml
+      service: orderer-base
+    environment:
+      - HOST_NAME=orderer0.orgorderer.com 
+      - ORDERER_GENERAL_LISTENPORT=7050 # orderer port 설정
+    volumes:
+      - ../scripts/container:/scripts
+      - ../../logs/container_logs/orderer0.orgorderer.com:/log
+      - ../channel-artifacts/genesis.block:/etc/hyperledger/orderer/orderer.genesis.block
+      - ../crypto-config/ordererOrganizations/orgorderer.com/users/Admin@orgorderer.com/msp/:/etc/hyperledger/orderer/admin/msp
+      - ../crypto-config/ordererOrganizations/orgorderer.com/orderers/orderer0.orgorderer.com:/etc/hyperledger/orderer
+      - ../../data/production/orderer0.orgorderer.com/:/var/hyperledger/production
+    ports:
+      - 7050:7050
+    networks:
+      - brcoin-network
+
+
+  orderer1.orgorderer.com:
+    container_name: orderer1.orgorderer.com
+    extends:
+      file: peer-base.yaml
+      service: orderer-base
+    environment:
+      - HOST_NAME=orderer1.orgorderer.com
+      - ORDERER_GENERAL_LISTENPORT=8050 # orderer port 설정
+    volumes:
+      - ../scripts/container:/scripts
+      - ../../logs/container_logs/orderer1.orgorderer.com:/log
+      - ../channel-artifacts/genesis.block:/etc/hyperledger/orderer/orderer.genesis.block
+      - ../crypto-config/ordererOrganizations/orgorderer.com/users/Admin@orgorderer.com/msp/:/etc/hyperledger/orderer/admin/msp
+      - ../crypto-config/ordererOrganizations/orgorderer.com/orderers/orderer1.orgorderer.com:/etc/hyperledger/orderer
+      - ../../data/production/orderer1.orgorderer.com/:/var/hyperledger/production
+    ports:
+      - 8050:8050
+    networks:
+      - brcoin-network
+
+  orderer2.orgorderer.com:
+    container_name: orderer2.orgorderer.com
+    extends:
+      file: peer-base.yaml
+      service: orderer-base
+    environment:
+      - HOST_NAME=orderer2.orgorderer.com
+      - ORDERER_GENERAL_LISTENPORT=9050 # orderer port 설정
+    volumes:
+      - ../scripts/container:/scripts
+      - ../../logs/container_logs/orderer2.orgorderer.com:/log
+      - ../channel-artifacts/genesis.block:/etc/hyperledger/orderer/orderer.genesis.block
+      - ../crypto-config/ordererOrganizations/orgorderer.com/users/Admin@orgorderer.com/msp/:/etc/hyperledger/orderer/admin/msp
+      - ../crypto-config/ordererOrganizations/orgorderer.com/orderers/orderer2.orgorderer.com:/etc/hyperledger/orderer
+      - ../../data/production/orderer2.orgorderer.com/:/var/hyperledger/production
+    ports:
+      - 9050:9050
+    networks:
+      - brcoin-network
+
+  peer0.orgbrcoin.com:
+    container_name: peer0.orgbrcoin.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.orgbrcoin.com # peer id
+      - CORE_PEER_ADDRESS=peer0.orgbrcoin.com:7051 # peer address
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051 # peer listen address
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.orgbrcoin.com:7051 # gossip 통신시 외부 노출 주소(자기 자신)
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.orgbrcoin.com:7051 peer1.orgbrcoin.com:8051 # gossip 통신시 필요한 엔드포인트(자기 조직 구성원)
+      - CORE_PEER_LOCALMSPID=brcoinMSP # msp id
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/msp/cacerts/ca-orgbrcoin-com-7054.pem # root ca 인증서 경로
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB # 사용할 state db (goleveldb, CouchDB)
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0.orgbrcoin.com:5984 # couchdb 주소
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=brcoin_dev0 # couchdb 아이디
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=brcoin! # couchdb 패스워드
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../scripts/container:/scripts
+        - ../crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
+        - ../../logs/container_logs/peer0.orgbrcoin.com:/log
+        - ../crypto-config/peerOrganizations/orgbrcoin.com/peers/peer0.orgbrcoin.com/:/opt/gopath/src/github.com/hyperledger/fabric/peer
+        - ../../data/production/peer0.orgbrcoin.com:/var/hyperledger/production
+    depends_on:
+      - couchdb0.orgbrcoin.com
+    ports:
+      - 7051:7051
+    networks:
+      - brcoin-network
+
+  peer1.orgbrcoin.com:
+    container_name: peer1.orgbrcoin.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.orgbrcoin.com # peer id
+      - CORE_PEER_ADDRESS=peer1.orgbrcoin.com:8051 # peer address
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051 # peer listen address
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.orgbrcoin.com:8051 # gossip 통신시 외부 노출 주소(자기 자신)
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.orgbrcoin.com:7051 peer1.orgbrcoin.com:8051 # gossip 통신시 필요한 엔드포인트(자기 조직 구성원)
+      - CORE_PEER_LOCALMSPID=brcoinMSP # msp id
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/msp/cacerts/ca-orgbrcoin-com-7054.pem # root ca 인증서 경로
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB # 사용할 state db (goleveldb, CouchDB)
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1.orgbrcoin.com:5984 # couchdb 주소
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=brcoin_dev1 # couchdb 아이디
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=brcoin! # couchdb 패스워드
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../scripts/container:/scripts
+        - ../crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
+        - ../../logs/container_logs/peer1.orgbrcoin.com:/log
+        - ../crypto-config/peerOrganizations/orgbrcoin.com/peers/peer1.orgbrcoin.com/:/opt/gopath/src/github.com/hyperledger/fabric/peer
+        - ../../data/production/peer1.orgbrcoin.com:/var/hyperledger/production
+    depends_on:
+      - couchdb1.orgbrcoin.com
+    ports:
+      - 8051:8051
+    networks:
+      - brcoin-network
+
+  couchdb0.orgbrcoin.com:
+    container_name: couchdb0.orgbrcoin.com
+    image: couchdb:3.1.1
+    environment:
+      - TZ=Asia/Seoul # 타임존 설정
+      - COUCHDB_USER=brcoin_dev0 # couchdb 아이디
+      - COUCHDB_PASSWORD=brcoin! # couchdb 패스워드
+    volumes:
+        - ../../data/couchdb/couchdb0.orgbrcoin.com:/opt/couchdb/data
+        - ../../logs/container_logs/couchdb0.orgbrcoin.com:/opt/couchdb/log/
+        - ../config/couchdb/brcoin0.ini:/opt/couchdb/etc/local.ini
+    ports:
+      - "5984:5984"
+    command: '/opt/couchdb/bin/couchdb'
+    logging:
+      driver: none
+    networks:
+      - brcoin-network
+
+  couchdb1.orgbrcoin.com:
+    container_name: couchdb1.orgbrcoin.com
+    image: couchdb:3.1.1
+    environment:
+      - TZ=Asia/Seoul # 타임존 설정
+      - COUCHDB_USER=brcoin_dev1 # couchdb 아이디
+      - COUCHDB_PASSWORD=brcoin! # couchdb 패스워드
+    volumes:
+        - ../../data/couchdb/couchdb1.orgbrcoin.com:/opt/couchdb/data
+        - ../../logs/container_logs/couchdb1.orgbrcoin.com:/opt/couchdb/log/
+        - ../config/couchdb/brcoin1.ini:/opt/couchdb/etc/local.ini
+    ports:
+      - "6984:5984"
+    logging:
+      driver: none
+    networks:
+      - brcoin-network
+
+  setup:
+    container_name: setup
+    extends:
+      file: peer-base.yaml
+      service: ca-env
+    image: hyperledger/fabric-ca:1.4.8
+    environment:
+      - ORDERER_HOME=/etc/hyperledger/orderer
+      - PEER_HOME=/opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash -c '/scripts/setup-fabric.sh; sleep 99999'
+    volumes:
+      - ../scripts/container:/scripts
+      - ../crypto-config:/crypto-config
+      - ../channel-artifacts:/root/data
+    networks:
+      - brcoin-network
+
+
+  ca.orgbrcoin.com:
+    container_name: ca.orgbrcoin.com
+    image: hyperledger/fabric-ca:1.4.8
+    extends:
+      file: peer-base.yaml
+      service: ca-env
+    environment:
+      - FABRIC_CA_SERVER_CSR_CN=ca.orgbrcoin.com # root ca 인증서 cn 
+      - FABRIC_CA_SERVER_CSR_HOSTS=ca.orgbrcoin.com # root ca 인증서 host
+      - FABRIC_CA_SERVER_CA_NAME=ca-brcoin # ca server name
+      - FABRIC_CA_SERVER_PORT=7054 # ca server port
+    ports:
+      - 7054:7054
+    command: /bin/bash -c '/scripts/start-root-ca.sh'
+    logging:
+      driver: none 
+    volumes:
+      - ../scripts/container:/scripts
+      - ../crypto-config:/crypto-config
+      - ../../data/ca/ca.orgbrcoin.com:/etc/hyperledger/fabric-ca
+      - ../../logs/container_logs/ca.orgbrcoin.com:/log
+    networks:
+      - brcoin-network
+
+  ca.orgorderer.com:
+    container_name: ca.orgorderer.com
+    image: hyperledger/fabric-ca:1.4.8
+    extends:
+      file: peer-base.yaml
+      service: ca-env
+    environment:
+      - FABRIC_CA_SERVER_CSR_CN=ca.orgorderer.com # root ca 인증서 cn 
+      - FABRIC_CA_SERVER_CSR_HOSTS=ca.orgorderer.com # root ca 인증서 host
+      - FABRIC_CA_SERVER_CA_NAME=ca-orderer # ca server name
+      - FABRIC_CA_SERVER_PORT=8054 # ca server port
+    ports:
+      - 8054:8054
+    command: /bin/bash -c '/scripts/start-root-ca.sh'
+    logging:
+      driver: none 
+    volumes:
+      - ../scripts/container:/scripts
+      - ../crypto-config:/crypto-config
+      - ../../data/ca/ca.orgorderer.com:/etc/hyperledger/fabric-ca
+      - ../../logs/container_logs/ca.orgorderer.com:/log
+    networks:
+      - brcoin-network
+
+
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:2.3.0
+    tty: true
+    stdin_open: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.orgbrcoin.com
+      - CORE_PEER_ADDRESS=peer0.orgbrcoin.com:7051
+      - CORE_PEER_LOCALMSPID=brcoinMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgbrcoin.com/peers/peer0.orgbrcoin.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgbrcoin.com/peers/peer0.orgbrcoin.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgbrcoin.com/peers/peer0.orgbrcoin.com/msp/cacerts/ca-orgbrcoin-com-7054.pem
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgbrcoin.com/users/Admin@orgbrcoin.com/msp/
+      - TZ=Asia/Seoul
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/sh 
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../scripts/cron:/scripts
+        - ../../logs/container_logs:/logs
+        - ../chaincode/:/opt/gopath/src/github.com/chaincode
+        - ../channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+        - ../crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
+        - ../chaincode/pkg:/opt/gopath/pkg ## mod를 넣어줘야 하나?
+        - ../../data/production:/production
+    networks:
+      - brcoin-network
+    extra_hosts:
+      - peer0.orgbpeer.com:192.168.65.167
+      - peer1.orgbpeer.com:192.168.65.167
+
+

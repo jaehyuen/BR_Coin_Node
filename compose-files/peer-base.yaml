@@ -1,0 +1,96 @@
+version: '2.1'
+
+services:
+  peer-base:
+    image: hyperledger/fabric-peer:2.3.0
+    environment: # 컨테이너 환경변수
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock # 호스트 서버의 도커 소캣 경로
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=test-network # 도커 네트워크 이름
+      - FABRIC_LOGGING_SPEC=INFO # 패브릭 로깅 level 설정
+      - CORE_PEER_TLS_ENABLED=true # tls 설정
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true # 자동 리더 설정
+      - CORE_PEER_GOSSIP_ORGLEADER=false # 리더 여부 
+      - CORE_PEER_PROFILE_ENABLED=false # golang profiling 해제
+      - CORE_CHAINCODE_LOGGING_LEVEL=DEBUG # 체인코드 로깅 level 설정
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052 # 체인코드 통신시 listen address
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/msp # msp 경로
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/tls/server.crt # tls 인증서 경로
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/tls/server.key # tls key 경로
+      - TZ=Asia/Seoul # 타임존 설정
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer # 컨테이?
+    command: /bin/sh -c '/scripts/start-peer.sh' # 컨테이너 실행 커맨드
+    logging: # 컨테이너 로깅 설정
+      driver: none
+
+
+  orderer-base:
+    image: hyperledger/fabric-orderer:2.3.0
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO # 패브릭 로깅 level 설정
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0 # 오더러 listen address
+      - ORDERER_GENERAL_GENESISMETHOD=file # 제네시스 블록 지정 방법
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/orderer/orderer.genesis.block # 제네시스 블록 경로
+      - ORDERER_GENERAL_LOCALMSPID=ordererMSP # msp id
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/orderer/msp # msp 경로
+      - ORDERER_GENERAL_TLS_ENABLED=true # tls 설정
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/orderer/tls/server.key # tls key 경로
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/orderer/tls/server.crt # tls 인증서 경로
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/orderer/msp/cacerts/ca-orgorderer-com-8054.pem] # root ca 인증서 경로
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/etc/hyperledger/orderer/tls/server.crt # raft 통신용 tls 인증서 경로
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/etc/hyperledger/orderer/tls/server.key # raft 통신용 tls key 경로
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/etc/hyperledger/orderer/msp/cacerts/ca-orgorderer-com-8054.pem] # raft 통신용 root ca 인증서 경로
+      - TZ=Asia/Seoul # 타임존 설정
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: /bin/sh -c '/scripts/start-orderer.sh'  # 컨테이너 실행 커맨드
+    logging: # 컨테이너 로깅 설정
+      driver: none
+
+  ca-env:
+    environment:
+      # ca env
+      - TZ=Asia/Seoul # 타임존 설정
+      - FABRIC_CA_SERVER_SIGNING_DEFAULT_EXPIRY=876600h # 기본 인증서 유효기간 설정 
+      - FABRIC_CA_SERVER_SIGNING_PROFILES_TLS_EXPIRY=876600h # tls 인증서 유효기간 설정 
+      - FABRIC_CA_SERVER_CSR_CA_EXPIRY=876600h # ??
+      - FABRIC_CA_SERVER_TLS_ENABLED=false # CA Server tls 설정
+      - FABRIC_CA_SERVER_DEBUG=true # CA Server Debug 로깅 설정
+      - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca # ca server home 설정
+      
+      # Names of the peer organizations ex) PEER_ORGS= org1 org2 org3
+      - PEER_ORGS=brcoin
+      # Names of the orderer organizations ex) ORDERER_ORGS= org1 org2 org3
+
+      - ORDERER_ORGS=orderer
+      # Number of peers or orderers in each organization 
+      #  ex) NUM_PEERS=2
+      #      NUM_ORDERER=2
+      - NUM_PEERS=2
+      - NUM_ORDERERS=3   
+    
+      # You must specify the port of the ca server
+      # ex) CA_SERVER_org1=7054
+      - CA_SERVER_PORT_brcoin=7054
+      - CA_SERVER_PORT_orderer=8054
+
+      # You must specify anchor peers port
+      # ex) PEER_PORT_(org)(num)=7051
+      #     PEER_PORT_test0=7051
+      - PEER_PORT_brcoin0=7051
+  
+
+      # You must specify orderers port
+      # ex) ORDERER_PORT_(org)(num)=7054
+      #     ORDERER_PORT_orderer0=7054
+      - ORDERER_PORT_orderer0=7050
+      - ORDERER_PORT_orderer1=8050
+      - ORDERER_PORT_orderer2=9050
+
+      # - CHANNEL_NAME_1=test1-channel
+      # - CHANNEL_NAME_2=test2-channel
+
+      # Names of the channel  ex) CHANNEL_NAMES=test1-channel test2-channel
+      - CHANNEL_NAMES=brcoin-channel
+      
+      - ADMINCERTS=true
+      - PROD_USER=${PROD_USER}
+

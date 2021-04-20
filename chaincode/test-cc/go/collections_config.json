@@ -1,0 +1,14 @@
+[
+    {
+      "name": "collectionTest",
+      "policy": "OR('apeerMSP.member', 'bpeerMSP.member')",
+      "requiredPeerCount": 0,
+      "maxPeerCount": 4,
+      "blockToLive": 0,
+      "memberOnlyRead": true,
+      "memberOnlyWrite": true,
+      "endorsementPolicy": {
+        "signaturePolicy": "AND('apeerMSP.member', 'bpeerMSP.member')"
+      }
+    }
+  ]

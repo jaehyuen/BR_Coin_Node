@@ -1,0 +1,52 @@
+#!/bin/bash
+
+ORG=brcoin
+
+CHANNEL_NAME="brcoin-channel"
+CHAINCODE_NAME="brcoin-cc"
+ORDERER_ADDRESS0="orderer0.orgorderer.com:7050"
+ORDERER_ADDRESS1="orderer1.orgorderer.com:8050"
+ORDERER_ADDRESS2="orderer2.orgorderer.com:9050"
+
+CERT_DIR="/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto"
+CA_FILE="${CERT_DIR}/ordererOrganizations/orgorderer.com/msp/tlscacerts/ca-orgorderer-com-8054.pem"
+
+CHAINCODE_VERSION=0.0.01
+CHAINCODE_PATH=github.com/chaincode/$CHAINCODE_NAME/go/
+CHAINCODE_PACKAGE_FILE=${CHAINCODE_NAME}_v${CHAINCODE_VERSION}.tar.gz
+CHAINCODE_PACKAGE_FILE_PATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts/$CHAINCODE_PACKAGE_FILE
+
+COLLECTION_CONFIG_PATH=/opt/gopath/src/${CHAINCODE_PATH}collections_config.json
+
+
+
+
+ENV_STR_BRCOIN0="
+    -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/peers/peer0.org${ORG}.com/msp/cacerts/ca-org${ORG}-com-7054.pem" \
+    -e "CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/peers/peer0.org${ORG}.com/tls/server.key" \
+    -e "CORE_PEER_LOCALMSPID=${ORG}MSP" \
+    -e "CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/peers/peer0.org${ORG}.com/tls/server.crt" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/users/Admin@org${ORG}.com/msp/" \
+    -e "CORE_PEER_ID=peer0.orgbrcoin.com" \
+    -e "CORE_PEER_ADDRESS=peer0.org${ORG}.com:7051""
+
+ENV_STR_BRCOIN1="
+    -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/peers/peer1.org${ORG}.com/msp/cacerts/ca-org${ORG}-com-7054.pem" \
+    -e "CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/peers/peer1.org${ORG}.com/tls/server.key" \
+    -e "CORE_PEER_LOCALMSPID=${ORG}MSP" \
+    -e "CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/peers/peer1.org${ORG}.com/tls/server.crt" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/users/Admin@org${ORG}.com/msp/" \
+    -e "CORE_PEER_ID=peer1.orgbrcoin.com" \
+    -e "CORE_PEER_ADDRESS=peer1.org${ORG}.com:8051""
+
+ENV_STR_ORDERER0="
+    -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/orgorderer.com/orderers/orderer0.orgorderer.com/msp/cacerts/ca-orgorderer-com-8054.pem" 
+    -e "CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/orgorderer.com/orderers/orderer0.orgorderer.com/tls/server.key"
+    -e "CORE_PEER_LOCALMSPID=ordererMSP" 
+    -e "CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/orgorderer.com/orderers/orderer0.orgorderer.com/tls/server.crt" 
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/orgorderer.com/users/Admin@orgorderer.com/msp/"
+    -e "CORE_PEER_ID=orderer0.orgorderer.com" \
+    -e "CORE_PEER_ADDRESS=orderer0.orgorderer.com""    
+
+
+
