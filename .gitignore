@@ -1,2 +1,3 @@
 chaincode/test-cc/go/vendor/
+chaincode/brcoin-cc/go/vendor/
 chaincode/pkg/
