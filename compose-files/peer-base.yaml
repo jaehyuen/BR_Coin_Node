@@ -5,7 +5,7 @@ services:
     image: hyperledger/fabric-peer:2.3.0
     environment: # 컨테이너 환경변수
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock # 호스트 서버의 도커 소캣 경로
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=test-network # 도커 네트워크 이름
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=brcoin-network # 도커 네트워크 이름
       - FABRIC_LOGGING_SPEC=INFO # 패브릭 로깅 level 설정
       - CORE_PEER_TLS_ENABLED=true # tls 설정
       - CORE_PEER_GOSSIP_USELEADERELECTION=true # 자동 리더 설정

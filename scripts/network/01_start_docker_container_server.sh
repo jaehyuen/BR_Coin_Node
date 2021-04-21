@@ -18,7 +18,7 @@ echo "           start peer docker           "
 echo "======================================="
 
 sleep 3
-docker-compose -f ./compose-files/docker-compose.yaml up -d orderer0.orgorderer.com orderer1.orgorderer.com peer0.orgbrcoin.com peer1.orgbrcoin.com 
+docker-compose -f ./compose-files/docker-compose.yaml up -d orderer0.orgorderer.com orderer1.orgorderer.com orderer2.orgorderer.com peer0.orgbrcoin.com peer1.orgbrcoin.com 
 
 echo "======================================="
 echo "           start other docker          "

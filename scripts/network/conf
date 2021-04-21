@@ -18,9 +18,6 @@ CHAINCODE_PACKAGE_FILE_PATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/c
 
 COLLECTION_CONFIG_PATH=/opt/gopath/src/${CHAINCODE_PATH}collections_config.json
 
-
-
-
 ENV_STR_BRCOIN0="
     -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/peers/peer0.org${ORG}.com/msp/cacerts/ca-org${ORG}-com-7054.pem" \
     -e "CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org${ORG}.com/peers/peer0.org${ORG}.com/tls/server.key" \

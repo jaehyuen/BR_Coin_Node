@@ -29,7 +29,6 @@ services:
     networks:
       - brcoin-network
 
-
   orderer1.orgorderer.com:
     container_name: orderer1.orgorderer.com
     extends:

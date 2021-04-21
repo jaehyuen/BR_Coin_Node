@@ -152,6 +152,7 @@ function installChaincode() {
 
     ch=$1
     cc=$2
+    newccver=$3
     # ccver_list=()
     # checkChannel $ch
     # # checkChaincode $ch $cc
@@ -211,7 +212,7 @@ function startDocker() {
     if [ "$2" == "ca" ]; then
         container_name="ca.orgbrcoin.com ca.orgorderer.com setup"
     elif [ "$2" == "o" ]; then
-        container_name="orderer0.orgorderer.com orderer1.orgorderer.com"
+        container_name="orderer0.orgorderer.com orderer1.orgorderer.com orderer2.orgorderer.com"
     elif [ "$2" == "p" ]; then
         container_name="peer0.orgbrcoin.com peer1.orgbrcoin.com"
     elif [ "$2" == "co" ]; then
@@ -241,7 +242,7 @@ function stopDocker() {
     if [ "$2" == "ca" ]; then
         container_name="ca.orgbrcoin.com ca.orgorderer.com setup"
     elif [ "$2" == "o" ]; then
-        container_name="orderer0.orgorderer.com orderer1.orgorderer.com"
+        container_name="orderer0.orgorderer.com orderer1.orgorderer.com orderer2.orgorderer.com"
     elif [ "$2" == "p" ]; then
         container_name="peer0.orgbrcoin.com peer1.orgbrcoin.com"
     elif [ "$2" == "co" ]; then

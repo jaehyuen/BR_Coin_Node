@@ -1,3 +1,10 @@
 chaincode/test-cc/go/vendor/
 chaincode/brcoin-cc/go/vendor/
 chaincode/pkg/
+
+channel-artifacts/*.tar.gz
+channel-artifacts/*.yaml
+channel-artifacts/*.block
+channel-artifacts/brcoin-channel
+
+crypto-config/
