@@ -27,7 +27,7 @@ func Reset() {
 }
 
 func checkQuery(t *testing.T, stub *shimtest.MockStub, name string, value string) {
-	res := stub.MockInvoke("1", [][]byte{[]byte("query"), []byte(name)})
+	res := stub.MockInvoke("1", [][]byte{[]byte("queryWallet"), []byte(name)})
 
 	if res.Status != shim.OK {
 		fmt.Println("Query", name, "failed", string(res.Message))
@@ -38,11 +38,11 @@ func checkQuery(t *testing.T, stub *shimtest.MockStub, name string, value string
 		t.FailNow()
 	}
 
-	fmt.Println("[checkQuery] result : ", string(res.Payload))
+	fmt.Println("[Query] result : ", string(res.Payload))
 
 }
 
-func checkInvoke(t *testing.T, stub *shimtest.MockStub, args [][]byte) {
+func checkInvoke(t *testing.T, stub *shimtest.MockStub, args [][]byte) string {
 	res := stub.MockInvoke("1", args)
 	if res.Status != shim.OK {
 		fmt.Println("Invoke", args, "failed", string(res.Message))
@@ -50,12 +50,29 @@ func checkInvoke(t *testing.T, stub *shimtest.MockStub, args [][]byte) {
 	}
 
 	var test, _ = strconv.Unquote(string(res.Payload))
+	return test
 
-	checkQuery(t, stub, test, "zz")
 }
 func TestCreateWallet(t *testing.T) {
 
-	checkInvoke(t, stub, [][]byte{[]byte("createWallet"), []byte("12341234")})
+	address1 := checkInvoke(t, stub, [][]byte{[]byte("createWallet"), []byte("12341234")})
+	checkQuery(t, stub, address1, "zz")
+
+}
+
+func TestCreateToken(t *testing.T) {
+
+	//토큰 생성을 위한 테스트 지갑 생성
+	address1 := checkInvoke(t, stub, [][]byte{[]byte("createWallet"), []byte("12341234")})
+
+	//0번토큰(BRC) 생성
+	tokenData := "{\"owner\": \"" + address1 + "\", \"symbol\": \"BRC\", \"totalsupply\": \"1000000\", \"name\": \"brcoin\", \"information\": \"thisisbrcoin\", \"url\": \"https: //github.com/jaehyuen/BR_Coin_Node\",	\"decimal\": 3, \"reserve\": []}"
+	checkInvoke(t, stub, [][]byte{[]byte("createToken"), []byte(tokenData)})
+
+	//1번토큰(AAA) 생성
+	tokenData = "{\"owner\": \"" + address1 + "\", \"symbol\": \"AAA\", \"totalsupply\": \"1000\", \"name\": \"testaaa\", \"information\": \"a\", \"url\": \"https: //github.com/jaehyuen/BR_Coin_Node\",	\"decimal\": 8, \"reserve\": []}"
+	checkInvoke(t, stub, [][]byte{[]byte("createToken"), []byte(tokenData)})
+	checkQuery(t, stub, address1, "zz")
 
 }
 

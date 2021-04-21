@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt" //cid 테스트??
 	"time"
+	"util"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 
@@ -13,6 +14,7 @@ import (
 
 func PutWallet(stub shim.ChaincodeStubInterface, key string, walletData structure.BarakWallet, jobType string, jobArgs []string) error {
 
+	// fmt.Println("[PutWallet] ")
 	var argsByte []byte
 	var err error
 
@@ -36,6 +38,32 @@ func PutWallet(stub shim.ChaincodeStubInterface, key string, walletData structur
 	}
 	return nil
 
+}
+
+func GetWallet(stub shim.ChaincodeStubInterface, address string) (structure.BarakWallet, error) {
+	var walletData structure.BarakWallet
+
+	// fmt.Println("[GetWallet] address : " + address)
+	//주소 유효성 검사
+	if util.AddressValidation(address) {
+		return walletData, errors.New(CODE0005 + " Address [" + address + "] is in the wrong format")
+	}
+	valueByte, err := stub.GetState(address)
+	//오류 발생시 에러리턴
+	if err != nil {
+		return walletData, errors.New(CODE9999 + " Hyperledger internal error - " + err.Error())
+	}
+
+	//값이없으면 에러리턴
+	if valueByte == nil {
+		return walletData, errors.New(CODE0003 + " Can not find the address [" + address + "]")
+	}
+
+	//structure.BarakWallet 형식으로 Unmarshal
+	if err = json.Unmarshal(valueByte, &walletData); err != nil {
+		return walletData, errors.New(CODE0006 + " Address [" + address + "] is in the wrong data")
+	}
+	return walletData, nil
 }
 
 // 등록함수
