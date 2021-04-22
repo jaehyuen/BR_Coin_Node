@@ -2,8 +2,12 @@ package util
 
 import (
 	"crypto/rand"
+	"errors"
+	"fmt"
 	"math/big"
 	"strings"
+
+	"github.com/shopspring/decimal"
 )
 
 //랜덤 스트링 생성
@@ -28,4 +32,22 @@ func AddressValidation(address string) bool {
 		return true
 	}
 	return false
+}
+
+// ParsePositive string is positive ?
+func ParsePositive(s string) (decimal.Decimal, error) {
+
+	//10진수인가?
+	var d decimal.Decimal
+	var err error
+
+	if d, err = decimal.NewFromString(s); err != nil {
+		fmt.Println("1")
+		return d, errors.New("1101, " + s + " is not integer string")
+	}
+	if !d.IsPositive() {
+		fmt.Println("3")
+		return d, errors.New("1101, " + s + " is either 0 or negative.")
+	}
+	return d, nil
 }

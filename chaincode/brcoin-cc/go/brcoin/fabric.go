@@ -64,7 +64,7 @@ func GetWallet(stub shim.ChaincodeStubInterface, address string) (structure.Bara
 	return walletData, nil
 }
 
-func GetTotalSupply(stub shim.ChaincodeStubInterface, tokenId string) (string, error) {
+func GetToken(stub shim.ChaincodeStubInterface, tokenId string) (structure.Token, error) {
 
 	var tokenData structure.Token
 
@@ -72,20 +72,20 @@ func GetTotalSupply(stub shim.ChaincodeStubInterface, tokenId string) (string, e
 
 	//오류 발생시 에러리턴
 	if err != nil {
-		return "", errors.New(CODE9999 + " Hyperledger internal error - " + err.Error())
+		return tokenData, errors.New(CODE9999 + " Hyperledger internal error - " + err.Error())
 	}
 
 	//값이없으면 에러리턴
 	if valueByte == nil {
-		return "", errors.New(CODE0003 + " Can not find the tokenId [" + tokenId + "]")
+		return tokenData, errors.New(CODE0003 + " Can not find the tokenId [" + tokenId + "]")
 	}
 
-	//structure.BarakWallet 형식으로 Unmarshal
+	//structure.Token 형식으로 Unmarshal
 	if err = json.Unmarshal(valueByte, &tokenData); err != nil {
-		return "", errors.New(CODE0006 + " Address [" + tokenId + "] is in the wrong data")
+		return tokenData, errors.New(CODE0006 + " Address [" + tokenId + "] is in the wrong data")
 	}
 
-	return tokenData.TotalSupply, nil
+	return tokenData, nil
 }
 
 // 등록함수

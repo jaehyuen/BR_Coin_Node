@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-chaincode-go/shimtest"
@@ -39,7 +40,6 @@ func checkQuery(t *testing.T, stub *shimtest.MockStub, function string, param st
 	}
 
 	fmt.Println("[Query] result : ", string(res.Payload))
-	fmt.Println()
 
 }
 
@@ -51,7 +51,6 @@ func checkInvoke(t *testing.T, stub *shimtest.MockStub, args [][]byte) string {
 	}
 
 	var test, _ = strconv.Unquote(string(res.Payload))
-	fmt.Println()
 	return test
 
 }
@@ -64,35 +63,65 @@ func TestCreateWallet(t *testing.T) {
 
 }
 
-func TestCreateToken(t *testing.T) {
+// func TestCreateToken(t *testing.T) {
 
-	fmt.Println("[TestCreateToken] start")
-	//토큰 생성을 위한 테스트 지갑 생성
+// 	fmt.Println("[TestCreateToken] start")
+// 	//토큰 생성을 위한 테스트 지갑 생성
+// 	address1 := checkInvoke(t, stub, [][]byte{[]byte("createWallet"), []byte("12341234")})
+
+// 	//0번토큰(BRC) 생성
+// 	tokenData := "{\"owner\": \"" + address1 + "\", \"symbol\": \"BRC\", \"totalSupply\": \"1000000\", \"name\": \"brcoin\", \"information\": \"thisisbrcoin\", \"url\": \"https: //github.com/jaehyuen/BR_Coin_Node\",	\"decimal\": 3, \"reserve\": []}"
+// 	checkInvoke(t, stub, [][]byte{[]byte("createToken"), []byte(tokenData)})
+
+// 	//1번토큰(AAA) 생성
+// 	tokenData = "{\"owner\": \"" + address1 + "\", \"symbol\": \"AAA\", \"totalSupply\": \"1000\", \"name\": \"testaaa\", \"information\": \"a\", \"url\": \"https: //github.com/jaehyuen/BR_Coin_Node\",\"decimal\": 8, \"reserve\": []}"
+// 	checkInvoke(t, stub, [][]byte{[]byte("createToken"), []byte(tokenData)})
+// 	checkQuery(t, stub, "queryWallet", address1)
+
+// 	fmt.Println("[TestCreateToken] fin")
+// 	fmt.Println()
+
+// }
+
+func TestCreateTokenAndTransfer(t *testing.T) {
+
+	fmt.Println("[TestCreateTokenAndTransfer] start")
+	//토큰 생성을 위한 테스트 지갑2개 생성
 	address1 := checkInvoke(t, stub, [][]byte{[]byte("createWallet"), []byte("12341234")})
+	address2 := checkInvoke(t, stub, [][]byte{[]byte("createWallet"), []byte("12341234")})
 
 	//0번토큰(BRC) 생성
-	tokenData := "{\"owner\": \"" + address1 + "\", \"symbol\": \"BRC\", \"totalsupply\": \"1000000\", \"name\": \"brcoin\", \"information\": \"thisisbrcoin\", \"url\": \"https: //github.com/jaehyuen/BR_Coin_Node\",	\"decimal\": 3, \"reserve\": []}"
+	tokenData := "{\"owner\": \"" + address1 + "\", \"symbol\": \"BRC\", \"totalSupply\": \"1000000\", \"name\": \"brcoin\", \"information\": \"thisisbrcoin\", \"url\": \"https: //github.com/jaehyuen/BR_Coin_Node\",	\"decimal\": 3, \"reserve\": []}"
 	checkInvoke(t, stub, [][]byte{[]byte("createToken"), []byte(tokenData)})
 
 	//1번토큰(AAA) 생성
-	tokenData = "{\"owner\": \"" + address1 + "\", \"symbol\": \"AAA\", \"totalsupply\": \"1000\", \"name\": \"testaaa\", \"information\": \"a\", \"url\": \"https: //github.com/jaehyuen/BR_Coin_Node\",	\"decimal\": 8, \"reserve\": []}"
+	tokenData = "{\"owner\": \"" + address1 + "\", \"symbol\": \"AAA\", \"totalSupply\": \"1000\", \"name\": \"testaaa\", \"information\": \"a\", \"url\": \"https: //github.com/jaehyuen/BR_Coin_Node\",\"decimal\": 8, \"reserve\": []}"
 	checkInvoke(t, stub, [][]byte{[]byte("createToken"), []byte(tokenData)})
+
+	// 1번지갑에서 2번지갑에 토큰 송금 1
+	transferData := "{\"fromAddr\": \"" + address1 + "\",\"toAddr\": \"" + address2 + "\",\"amount\": \"3.312\",\"tokenId\": \"1\",\"unlockDate\": \"0\"}"
+	checkInvoke(t, stub, [][]byte{[]byte("transfer"), []byte(transferData)})
+
+	// 1번지갑에서 2번지갑에 토큰 송금 1
+	transferData = "{\"fromAddr\": \"" + address1 + "\",\"toAddr\": \"" + address2 + "\",\"amount\": \"3.12345678\",\"tokenId\": \"1\",\"unlockDate\": \"1617081582\"}"
+	checkInvoke(t, stub, [][]byte{[]byte("transfer"), []byte(transferData)})
+
 	checkQuery(t, stub, "queryWallet", address1)
-
-	fmt.Println("[TestCreateToken] fin")
-	fmt.Println()
-
-}
-
-func TestGetTotalSupply(t *testing.T) {
-
-	fmt.Println("[TestGetTotalSupply] start")
-	checkQuery(t, stub, "totalSupply", "1")
-	checkQuery(t, stub, "totalSupply", "0")
-	fmt.Println("[TestGetTotalSupply] fin")
-	fmt.Println()
+	checkQuery(t, stub, "queryWallet", address2)
+	fmt.Println("[TestCreateTokenAndTransfer] fin")
+	fmt.Println(time.Now().Unix())
 
 }
+
+// func TestGetTotalSupply(t *testing.T) {
+
+// 	fmt.Println("[TestGetTotalSupply] start")
+// 	checkQuery(t, stub, "totalSupply", "1")
+// 	checkQuery(t, stub, "totalSupply", "0")
+// 	fmt.Println("[TestGetTotalSupply] fin")
+// 	fmt.Println()
+
+// }
 
 func TestMain(m *testing.M) {
 	setup()
