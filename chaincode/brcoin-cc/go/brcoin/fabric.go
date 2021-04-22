@@ -3,7 +3,7 @@ package brcoin
 import (
 	"encoding/json"
 	"errors"
-	"fmt" //cid 테스트??
+	"fmt"
 	"time"
 	"util"
 
@@ -14,7 +14,6 @@ import (
 
 func PutWallet(stub shim.ChaincodeStubInterface, key string, walletData structure.BarakWallet, jobType string, jobArgs []string) error {
 
-	// fmt.Println("[PutWallet] ")
 	var argsByte []byte
 	var err error
 
@@ -43,7 +42,6 @@ func PutWallet(stub shim.ChaincodeStubInterface, key string, walletData structur
 func GetWallet(stub shim.ChaincodeStubInterface, address string) (structure.BarakWallet, error) {
 	var walletData structure.BarakWallet
 
-	// fmt.Println("[GetWallet] address : " + address)
 	//주소 유효성 검사
 	if util.AddressValidation(address) {
 		return walletData, errors.New(CODE0005 + " Address [" + address + "] is in the wrong format")
@@ -64,6 +62,30 @@ func GetWallet(stub shim.ChaincodeStubInterface, address string) (structure.Bara
 		return walletData, errors.New(CODE0006 + " Address [" + address + "] is in the wrong data")
 	}
 	return walletData, nil
+}
+
+func GetTotalSupply(stub shim.ChaincodeStubInterface, tokenId string) (string, error) {
+
+	var tokenData structure.Token
+
+	valueByte, err := stub.GetState("TOKEN_DATA_" + tokenId)
+
+	//오류 발생시 에러리턴
+	if err != nil {
+		return "", errors.New(CODE9999 + " Hyperledger internal error - " + err.Error())
+	}
+
+	//값이없으면 에러리턴
+	if valueByte == nil {
+		return "", errors.New(CODE0003 + " Can not find the tokenId [" + tokenId + "]")
+	}
+
+	//structure.BarakWallet 형식으로 Unmarshal
+	if err = json.Unmarshal(valueByte, &tokenData); err != nil {
+		return "", errors.New(CODE0006 + " Address [" + tokenId + "] is in the wrong data")
+	}
+
+	return tokenData.TotalSupply, nil
 }
 
 // 등록함수

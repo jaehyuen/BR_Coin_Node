@@ -3,7 +3,6 @@ package brcoin
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -49,7 +48,6 @@ func CreateToken(stub shim.ChaincodeStubInterface, token *structure.Token) (stri
 		currNo = int(currNo64)
 		currNo = currNo + 1
 	}
-	fmt.Println(currNo)
 	token.Token = currNo
 	token.JobDate = time.Now().Unix()
 	token.CreateDate = time.Now().Unix()

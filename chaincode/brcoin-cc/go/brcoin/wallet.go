@@ -11,9 +11,6 @@ import (
 )
 
 func CreateWallet(stub shim.ChaincodeStubInterface, password string) (string, error) {
-	// var pub interface{}
-	// var ok bool
-	// var err error
 	var address string
 
 	walletData := structure.BarakWallet{Regdate: time.Now().Unix(),
@@ -38,9 +35,6 @@ func CreateWallet(stub shim.ChaincodeStubInterface, password string) (string, er
 			break
 		}
 	}
-
-	// fmt.Println("[CreateWallet] wallet address is : ", address)
-	// fmt.Println("[CreateWallet] walletData is : ", walletData)
 
 	if err := PutWallet(stub, address, walletData, "NewWallet", []string{address, password}); err != nil {
 		return "", err

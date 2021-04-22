@@ -26,19 +26,20 @@ func Reset() {
 	setup()
 }
 
-func checkQuery(t *testing.T, stub *shimtest.MockStub, name string, value string) {
-	res := stub.MockInvoke("1", [][]byte{[]byte("queryWallet"), []byte(name)})
+func checkQuery(t *testing.T, stub *shimtest.MockStub, function string, param string) {
+	res := stub.MockInvoke("1", [][]byte{[]byte(function), []byte(param)})
 
 	if res.Status != shim.OK {
-		fmt.Println("Query", name, "failed", string(res.Message))
+		fmt.Println("Query", param, "failed", string(res.Message))
 		t.FailNow()
 	}
 	if res.Payload == nil {
-		fmt.Println("Query", name, "failed to get value")
+		fmt.Println("Query", param, "failed to get value")
 		t.FailNow()
 	}
 
 	fmt.Println("[Query] result : ", string(res.Payload))
+	fmt.Println()
 
 }
 
@@ -50,18 +51,22 @@ func checkInvoke(t *testing.T, stub *shimtest.MockStub, args [][]byte) string {
 	}
 
 	var test, _ = strconv.Unquote(string(res.Payload))
+	fmt.Println()
 	return test
 
 }
 func TestCreateWallet(t *testing.T) {
-
+	fmt.Println("[TestCreateWallet] start")
 	address1 := checkInvoke(t, stub, [][]byte{[]byte("createWallet"), []byte("12341234")})
-	checkQuery(t, stub, address1, "zz")
+	checkQuery(t, stub, "queryWallet", address1)
+	fmt.Println("[TestCreateWallet] fin")
+	fmt.Println()
 
 }
 
 func TestCreateToken(t *testing.T) {
 
+	fmt.Println("[TestCreateToken] start")
 	//토큰 생성을 위한 테스트 지갑 생성
 	address1 := checkInvoke(t, stub, [][]byte{[]byte("createWallet"), []byte("12341234")})
 
@@ -72,7 +77,20 @@ func TestCreateToken(t *testing.T) {
 	//1번토큰(AAA) 생성
 	tokenData = "{\"owner\": \"" + address1 + "\", \"symbol\": \"AAA\", \"totalsupply\": \"1000\", \"name\": \"testaaa\", \"information\": \"a\", \"url\": \"https: //github.com/jaehyuen/BR_Coin_Node\",	\"decimal\": 8, \"reserve\": []}"
 	checkInvoke(t, stub, [][]byte{[]byte("createToken"), []byte(tokenData)})
-	checkQuery(t, stub, address1, "zz")
+	checkQuery(t, stub, "queryWallet", address1)
+
+	fmt.Println("[TestCreateToken] fin")
+	fmt.Println()
+
+}
+
+func TestGetTotalSupply(t *testing.T) {
+
+	fmt.Println("[TestGetTotalSupply] start")
+	checkQuery(t, stub, "totalSupply", "1")
+	checkQuery(t, stub, "totalSupply", "0")
+	fmt.Println("[TestGetTotalSupply] fin")
+	fmt.Println()
 
 }
 

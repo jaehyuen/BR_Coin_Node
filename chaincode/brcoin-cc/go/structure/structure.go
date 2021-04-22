@@ -20,7 +20,7 @@ type BalanceInfo struct {
 	UnlockDate int64  `json:"unlockdate"` //토큰 거래 정지 날짜
 }
 
-// Token BRC000 - 토큰
+// Token 토큰(코인)
 type Token struct {
 	Owner          string `json:"owner"`          // 생성자 지갑 주소
 	Symbol         string `json:"symbol"`         // 토큰 심볼
