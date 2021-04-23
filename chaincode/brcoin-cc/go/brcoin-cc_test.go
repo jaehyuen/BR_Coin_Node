@@ -108,6 +108,10 @@ func TestCreateTokenAndTransfer(t *testing.T) {
 
 	checkQuery(t, stub, "queryWallet", address1)
 	checkQuery(t, stub, "queryWallet", address2)
+
+	checkQuery(t, stub, "balanceOf", address1)
+	checkQuery(t, stub, "balanceOf", address2)
+
 	fmt.Println("[TestCreateTokenAndTransfer] fin")
 	fmt.Println(time.Now().Unix())
 

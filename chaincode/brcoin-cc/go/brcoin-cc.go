@@ -31,7 +31,7 @@ func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 	} else if function == "balanceOf" {
 		return s.balanceOf(stub, args) // 지갑에 있는 자산 조회
 	} else if function == "transfer" {
-		return s.transfer(stub, args) //토큰 송금
+		return s.transfer(stub, args) //토큰(코인) 송금
 	}
 
 	return shim.Error(brcoin.CODE9999 + " Invalid Smart Contract function name")
@@ -69,20 +69,20 @@ func (s *SmartContract) createToken(stub shim.ChaincodeStubInterface, args []str
 
 	}
 
-	response, err := brcoin.CreateToken(stub, token)
-
-	dataBytes, _ := json.Marshal(response)
+	err := brcoin.CreateToken(stub, token)
 
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	return shim.Success(dataBytes)
+	return shim.Success(nil)
 
 }
 
 /*
  * 지갑 생성
  * args[0]: 지갑 비밀번호
+ *
+ * return string 지갑 id
  */
 
 func (s *SmartContract) createWallet(stub shim.ChaincodeStubInterface, args []string) peer.Response {
@@ -101,6 +101,8 @@ func (s *SmartContract) createWallet(stub shim.ChaincodeStubInterface, args []st
 /*
  * 지갑 조회
  * args[0]: 지갑 주소
+ *
+ * return structure.Token 지갑정보 json
  */
 
 func (s *SmartContract) queryWallet(stub shim.ChaincodeStubInterface, args []string) peer.Response {
@@ -119,6 +121,8 @@ func (s *SmartContract) queryWallet(stub shim.ChaincodeStubInterface, args []str
 /*
  * 토큰(코인) 총 발행량 조회
  * args[0]: tokenId
+ *
+ * return string 해당 토큰의 총 발행량
  */
 
 func (s *SmartContract) totalSupply(stub shim.ChaincodeStubInterface, args []string) peer.Response {
@@ -134,11 +138,38 @@ func (s *SmartContract) totalSupply(stub shim.ChaincodeStubInterface, args []str
 
 }
 
+/*
+ * 잔고 조회
+ * args[0]: 지갑 주소
+ *
+ * return []structure.BalanceInfo 지갑정보 jsonArray
+ */
+
 func (s *SmartContract) balanceOf(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 
-	return shim.Success(nil)
+	walletData, err := brcoin.GetWallet(stub, args[0])
+	balanceByte, _ := json.Marshal(walletData.Balance)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(balanceByte)
 
 }
+
+/*
+ * 토큰(코인) 송금
+ * args[0]: []structure.Transfer
+ * detail args[0]:
+ * {
+ *  "fromAddr": "보내는 지갑주소",
+ *  "toAddr": "받는 지갑주소",
+ *  "amount": "보내는 토큰(코인 량)",
+ *  "tokenId": "토큰(코인) id",
+ *  "unlockDate": "거래 금지 날짜(타임스탬프)"
+ * }
+ *
+ */
 func (s *SmartContract) transfer(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	var transfer *structure.Transfer
@@ -149,13 +180,12 @@ func (s *SmartContract) transfer(stub shim.ChaincodeStubInterface, args []string
 
 	}
 
-	response, err := brcoin.TransferToken(stub, transfer)
+	err := brcoin.TransferToken(stub, transfer)
 
-	dataBytes, _ := json.Marshal(response)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	return shim.Success(dataBytes)
+	return shim.Success(nil)
 
 }
 

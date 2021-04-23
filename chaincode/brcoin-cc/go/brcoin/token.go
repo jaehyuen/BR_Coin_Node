@@ -14,7 +14,7 @@ import (
 	"structure"
 )
 
-func CreateToken(stub shim.ChaincodeStubInterface, token *structure.Token) (string, error) {
+func CreateToken(stub shim.ChaincodeStubInterface, token *structure.Token) error {
 
 	var err error
 	var currNo int
@@ -24,23 +24,23 @@ func CreateToken(stub shim.ChaincodeStubInterface, token *structure.Token) (stri
 
 	// data check
 	if len(token.Symbol) < 1 {
-		return "", errors.New(CODE0005 + " Symbol is empty")
+		return errors.New(CODE0005 + " Symbol is empty")
 	}
 
 	if len(token.Name) < 1 {
-		return "", errors.New(CODE0005 + " Name is empty")
+		return errors.New(CODE0005 + " Name is empty")
 	}
 
 	if token.Decimal < 0 {
-		return "", errors.New(CODE0005 + " The decimal number must be bigger then 0")
+		return errors.New(CODE0005 + " The decimal number must be bigger then 0")
 	}
 
 	if token.Decimal > 8 {
-		return "", errors.New(CODE0005 + " The decimal number must be less than 8")
+		return errors.New(CODE0005 + " The decimal number must be less than 8")
 	}
 
 	if valueByte, err = stub.GetState("TOKEN_MAX_NO"); err != nil {
-		return "", errors.New(CODE9999 + " Hyperledger internal error - " + err.Error())
+		return errors.New(CODE9999 + " Hyperledger internal error - " + err.Error())
 	}
 
 	if valueByte == nil {
@@ -57,23 +57,23 @@ func CreateToken(stub shim.ChaincodeStubInterface, token *structure.Token) (stri
 	token.JobType = "CreateToken"
 
 	if tokenByte, err = json.Marshal(token); err != nil {
-		return "", errors.New(CODE0006 + " Invalid Data format")
+		return errors.New(CODE0006 + " Invalid Data format")
 	}
 
 	token.JobArgs = string(tokenByte)
 
 	if tokenByte, err = json.Marshal(token); err != nil {
-		return "", errors.New(CODE0006 + " Invalid Data format")
+		return errors.New(CODE0006 + " Invalid Data format")
 	}
 
 	if err = stub.PutState("TOKEN_DATA_"+strconv.Itoa(currNo), tokenByte); err != nil {
-		return "", err
+		return err
 	}
 
 	if len(token.Reserve) == 0 {
 
 		if reserveWallet, err = GetWallet(stub, token.Owner); err != nil {
-			return "", errors.New(CODE0003 + " Token reserve address " + token.Owner + " not found")
+			return errors.New(CODE0003 + " Token reserve address " + token.Owner + " not found")
 		}
 		if currNo == 0 {
 			reserveWallet.Balance[0].Balance = token.TotalSupply
@@ -82,13 +82,13 @@ func CreateToken(stub shim.ChaincodeStubInterface, token *structure.Token) (stri
 		}
 
 		if err = PutWallet(stub, token.Owner, reserveWallet, "TokenReserve", []string{token.Owner, token.Owner, token.TotalSupply, strconv.Itoa(currNo)}); err != nil {
-			return "", err
+			return err
 		}
 	} else {
 
 		for _, reserveInfo = range token.Reserve {
 			if reserveWallet, err = GetWallet(stub, reserveInfo.Address); err != nil {
-				return "", errors.New(CODE0003 + " Token reserve address " + reserveInfo.Address + " not found")
+				return errors.New(CODE0003 + " Token reserve address " + reserveInfo.Address + " not found")
 			}
 			if currNo == 0 {
 				reserveWallet.Balance[0].Balance = reserveInfo.Value
@@ -97,18 +97,18 @@ func CreateToken(stub shim.ChaincodeStubInterface, token *structure.Token) (stri
 			}
 
 			if err = PutWallet(stub, reserveInfo.Address, reserveWallet, "TokenReserve", []string{token.Owner, reserveInfo.Address, reserveInfo.Value, strconv.Itoa(currNo)}); err != nil {
-				return "", err
+				return err
 			}
 		}
 	}
 
 	if err = stub.PutState("TOKEN_MAX_NO", []byte(strconv.Itoa(currNo))); err != nil {
-		return "", err
+		return err
 	}
-	return "", nil
+	return nil
 }
 
-func TransferToken(stub shim.ChaincodeStubInterface, transfer *structure.Transfer) (string, error) {
+func TransferToken(stub shim.ChaincodeStubInterface, transfer *structure.Transfer) error {
 
 	var err error
 	var fromWallet, toWallet structure.BarakWallet
@@ -116,49 +116,49 @@ func TransferToken(stub shim.ChaincodeStubInterface, transfer *structure.Transfe
 
 	//지갑 주소 유효성 검사
 	if util.AddressValidation(transfer.FromAddr) {
-		return "", errors.New(CODE0005 + " Invalid from address")
+		return errors.New(CODE0005 + " Invalid from address")
 	}
 	if util.AddressValidation(transfer.ToAddr) {
-		return "", errors.New(CODE0005 + " Invalid to address")
+		return errors.New(CODE0005 + " Invalid to address")
 	}
 	if transfer.FromAddr == transfer.ToAddr {
-		return "", errors.New(CODE0005 + " From address and to address must be different values")
+		return errors.New(CODE0005 + " From address and to address must be different values")
 	}
 
 	//unlock date 숫자로 변경(부호가 있는 숫자)
 	if iUnlockDate, err = strconv.ParseInt(transfer.UnlockDate, 10, 64); err != nil {
-		return "", errors.New("1102,Invalid unlock date")
+		return errors.New("1102,Invalid unlock date")
 	}
 
 	//보내는 지갑 데이터 조회
 	if fromWallet, err = GetWallet(stub, transfer.FromAddr); err != nil {
-		return "", err
+		return err
 	}
 
 	//받는 지갑 데이터 조회
 	if toWallet, err = GetWallet(stub, transfer.ToAddr); err != nil {
-		return "", err
+		return err
 	}
 
 	//토큰 이동
 	if err = MoveToken(stub, &fromWallet, &toWallet, transfer.TokenId, transfer.Amount, iUnlockDate); err != nil {
 		if strings.Index(err.Error(), "5000,") == 0 {
-			return "", errors.New("5001,The balance of fromuser is insufficient")
+			return errors.New("5001,The balance of fromuser is insufficient")
 		}
-		return "", err
+		return err
 	}
 
 	args := []string{transfer.ToAddr, transfer.FromAddr, transfer.Amount, transfer.TokenId, transfer.UnlockDate}
 	//보낸 지갑 정보 저장
 	if err = PutWallet(stub, transfer.FromAddr, fromWallet, "transfer", args); err != nil {
-		return "", err
+		return err
 	}
 	//받은 지갑 정보 저장
 	if err = PutWallet(stub, transfer.ToAddr, toWallet, "receive", args); err != nil {
-		return "", err
+		return err
 	}
 
-	return "", nil
+	return nil
 }
 
 // MoveToken 잔액을 다른 Wallet 로 이동
