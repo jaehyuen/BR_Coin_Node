@@ -14,6 +14,10 @@ type SmartContract struct {
 }
 
 func (s *SmartContract) Init(stub shim.ChaincodeStubInterface) peer.Response {
+
+	fmt.Println("initinitinitinitinitinitinitinitinitinitinit")
+	brcoin.InitWallet(stub)
+	brcoin.InitToken(stub)
 	return shim.Success(nil)
 }
 
@@ -32,6 +36,12 @@ func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 		return s.balanceOf(stub, args) // 지갑에 있는 자산 조회
 	} else if function == "transfer" {
 		return s.transfer(stub, args) //토큰(코인) 송금
+	} else if function == "mint" {
+		return s.mint(stub, args) //토큰(코인) 추가 발행
+	} else if function == "burn" {
+		return s.burn(stub, args) //토큰(코인) 소각
+	} else if function == "queryAllTokens" {
+		return s.queryAllTokens(stub, args) //토큰(코인) 소각
 	}
 
 	return shim.Error(brcoin.CODE9999 + " Invalid Smart Contract function name")
@@ -80,7 +90,7 @@ func (s *SmartContract) createToken(stub shim.ChaincodeStubInterface, args []str
 
 /*
  * 지갑 생성
- * args[0]: 지갑 비밀번호
+ * args[0]: 지갑 public key
  *
  * return string 지갑 id
  */
@@ -186,6 +196,51 @@ func (s *SmartContract) transfer(stub shim.ChaincodeStubInterface, args []string
 		return shim.Error(err.Error())
 	}
 	return shim.Success(nil)
+
+}
+
+/*
+* 토큰(코인) 추가 발행
+ */
+func (s *SmartContract) mint(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+
+	//지갑 데이터 조회
+	walletData, err := brcoin.GetWallet(stub, args[0])
+	walletByte, _ := json.Marshal(walletData)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(walletByte)
+
+}
+
+/*
+* 토큰(코인) 소각
+ */
+func (s *SmartContract) burn(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+
+	//지갑 데이터 조회
+	walletData, err := brcoin.GetWallet(stub, args[0])
+	walletByte, _ := json.Marshal(walletData)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(walletByte)
+
+}
+
+func (s *SmartContract) queryAllTokens(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+
+	//지갑 데이터 조회
+	tokenData, err := brcoin.FindAllTokens(stub)
+	tokenByte, _ := json.Marshal(tokenData)
+
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(tokenByte)
 
 }
 

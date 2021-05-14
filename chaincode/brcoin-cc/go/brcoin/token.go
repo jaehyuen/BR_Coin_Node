@@ -299,3 +299,75 @@ func MoveToken(stub shim.ChaincodeStubInterface, fromWallet *structure.BarakWall
 	}
 	return nil
 }
+
+func InitToken(stub shim.ChaincodeStubInterface) error {
+
+	var err error
+	var tokenByte []byte
+	var reserveWallet structure.BarakWallet
+
+	tokenData := structure.Token{
+		Owner:       "BRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+		Symbol:      "BRC",
+		CreateDate:  time.Now().Unix(),
+		TotalSupply: "100000000",
+		TokeId:      0,
+		JobDate:     time.Now().Unix(),
+		JobType:     "CreateToken",
+	}
+
+	if tokenByte, err = json.Marshal(tokenData); err != nil {
+		return errors.New(CODE0006 + " Invalid Data format")
+	}
+
+	if err = stub.PutState("TOKEN_DATA_0", tokenByte); err != nil {
+		return err
+	}
+
+	if reserveWallet, err = GetWallet(stub, tokenData.Owner); err != nil {
+		return errors.New(CODE0003 + " Token reserve address " + tokenData.Owner + " not found")
+	}
+
+	reserveWallet.Balance[0].Balance = tokenData.TotalSupply
+
+	if err = PutWallet(stub, tokenData.Owner, reserveWallet, "TokenReserve", []string{tokenData.Owner, tokenData.Owner, tokenData.TotalSupply, strconv.Itoa(0)}); err != nil {
+		return err
+	}
+
+	if err = stub.PutState("TOKEN_MAX_NO", []byte(strconv.Itoa(0))); err != nil {
+		return err
+	}
+	return nil
+}
+
+func FindAllTokens(stub shim.ChaincodeStubInterface) ([]structure.Token, error) {
+
+	var err error
+	var currNo int
+	var valueByte []byte
+	var tokenArr []structure.Token
+
+	if valueByte, err = stub.GetState("TOKEN_MAX_NO"); err != nil {
+		return nil, errors.New(CODE9999 + " Hyperledger internal error - " + err.Error())
+	}
+
+	if valueByte == nil {
+		currNo = 0
+	} else {
+		currNo64, _ := strconv.ParseInt(string(valueByte), 10, 32)
+		currNo = int(currNo64)
+		currNo = currNo + 1
+	}
+
+	for i := 0; i < currNo; i++ {
+		token, err := GetToken(stub, strconv.Itoa(i))
+
+		if err != nil {
+			return nil, err
+		}
+
+		tokenArr = append(tokenArr, token)
+
+	}
+	return tokenArr, nil
+}

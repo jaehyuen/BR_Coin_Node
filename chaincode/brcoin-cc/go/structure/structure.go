@@ -2,8 +2,8 @@ package structure
 
 //바락코인 지갑 구조체
 type BarakWallet struct {
-	Regdate  int64  `json:"regdate"`  // 지갑 등록 일자
-	Password string `json:"password"` // 지갑 패스워드 (인증서로 사용할 예정)
+	Regdate   int64  `json:"regDate"`   // 지갑 등록 일자
+	PublicKey string `json:"publicKey"` // 지갑 패스워드 (인증서로 사용할 예정)
 	//Addinfo  string         `json:"addinfo"`
 	JobType string        `json:"jobType"` //job 내용 (실행 내용)
 	JobArgs string        `json:"jobArgs"` //job params

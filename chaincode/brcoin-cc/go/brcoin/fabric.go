@@ -96,6 +96,8 @@ func PutState(stub shim.ChaincodeStubInterface, key string, value interface{}) e
 	//public 데이터 변수 저장
 	valueBytes, err = json.Marshal(value)
 
+	fmt.Println(len(valueBytes))
+
 	if err != nil {
 		return errors.New("8600,Hyperledger internal error - " + err.Error() + key)
 	}
