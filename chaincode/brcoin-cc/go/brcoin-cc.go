@@ -16,8 +16,12 @@ type SmartContract struct {
 func (s *SmartContract) Init(stub shim.ChaincodeStubInterface) peer.Response {
 
 	fmt.Println("initinitinitinitinitinitinitinitinitinitinit")
-	brcoin.InitWallet(stub)
-	brcoin.InitToken(stub)
+	brcoin.InitBrcoin(stub)
+
+	if err := brcoin.InitBrcoin(stub); err != nil {
+		return shim.Error(brcoin.CODE9999 + " Init")
+
+	}
 	return shim.Success(nil)
 }
 
@@ -42,6 +46,8 @@ func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 		return s.burn(stub, args) //토큰(코인) 소각
 	} else if function == "queryAllTokens" {
 		return s.queryAllTokens(stub, args) //토큰(코인) 소각
+	} else if function == "init" {
+		return s.Init(stub) //토큰(코인) 소각
 	}
 
 	return shim.Error(brcoin.CODE9999 + " Invalid Smart Contract function name")

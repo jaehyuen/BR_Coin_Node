@@ -18,7 +18,7 @@ func CreateToken(stub shim.ChaincodeStubInterface, token *structure.Token) error
 
 	var err error
 	var currNo int
-	var valueByte, tokenByte []byte
+	var valueByte, tokenByte, argsByte []byte
 	var reserveInfo structure.TokenReserve
 	var reserveWallet structure.BarakWallet
 
@@ -60,7 +60,12 @@ func CreateToken(stub shim.ChaincodeStubInterface, token *structure.Token) error
 		return errors.New(CODE0006 + " Invalid Data format")
 	}
 
-	token.JobArgs = string(tokenByte)
+	// token.JobArgs = string(tokenByte)
+	// token.JobArgs = []string{"", ""}
+
+	if argsByte, err = json.Marshal([]string{token.Owner, token.Symbol, token.TotalSupply, token.Name, token.Information, token.URL}); err == nil {
+		token.JobArgs = string(argsByte)
+	}
 
 	if tokenByte, err = json.Marshal(token); err != nil {
 		return errors.New(CODE0006 + " Invalid Data format")
@@ -296,46 +301,6 @@ func MoveToken(stub shim.ChaincodeStubInterface, fromWallet *structure.BarakWall
 		if unlockDate > 0 {
 			toWallet.Balance[toIndex].UnlockDate = unlockDate
 		}
-	}
-	return nil
-}
-
-func InitToken(stub shim.ChaincodeStubInterface) error {
-
-	var err error
-	var tokenByte []byte
-	var reserveWallet structure.BarakWallet
-
-	tokenData := structure.Token{
-		Owner:       "BRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-		Symbol:      "BRC",
-		CreateDate:  time.Now().Unix(),
-		TotalSupply: "100000000",
-		TokeId:      0,
-		JobDate:     time.Now().Unix(),
-		JobType:     "CreateToken",
-	}
-
-	if tokenByte, err = json.Marshal(tokenData); err != nil {
-		return errors.New(CODE0006 + " Invalid Data format")
-	}
-
-	if err = stub.PutState("TOKEN_DATA_0", tokenByte); err != nil {
-		return err
-	}
-
-	if reserveWallet, err = GetWallet(stub, tokenData.Owner); err != nil {
-		return errors.New(CODE0003 + " Token reserve address " + tokenData.Owner + " not found")
-	}
-
-	reserveWallet.Balance[0].Balance = tokenData.TotalSupply
-
-	if err = PutWallet(stub, tokenData.Owner, reserveWallet, "TokenReserve", []string{tokenData.Owner, tokenData.Owner, tokenData.TotalSupply, strconv.Itoa(0)}); err != nil {
-		return err
-	}
-
-	if err = stub.PutState("TOKEN_MAX_NO", []byte(strconv.Itoa(0))); err != nil {
-		return err
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 	"util"
 
@@ -108,4 +109,52 @@ func PutState(stub shim.ChaincodeStubInterface, key string, value interface{}) e
 	}
 	return nil
 
+}
+
+func InitBrcoin(stub shim.ChaincodeStubInterface) error {
+
+	var err error
+	var tokenByte []byte
+	var address, totalSupply, symbol string
+
+	symbol = "BRC"
+	address = "BRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	totalSupply = "100000000"
+
+	tokenData := structure.Token{
+		Owner:       address,
+		Symbol:      symbol,
+		CreateDate:  time.Now().Unix(),
+		TotalSupply: totalSupply,
+		TokeId:      0,
+		Decimal:     8,
+		JobDate:     time.Now().Unix(),
+		JobType:     "CreateToken",
+	}
+
+	if tokenByte, err = json.Marshal(tokenData); err != nil {
+		return errors.New(CODE0006 + " Invalid Data format")
+	}
+
+	if err = stub.PutState("TOKEN_DATA_0", tokenByte); err != nil {
+		return err
+	}
+
+	if err = stub.PutState("TOKEN_MAX_NO", []byte(strconv.Itoa(0))); err != nil {
+		return err
+	}
+
+	walletData := structure.BarakWallet{Regdate: time.Now().Unix(),
+		PublicKey: "publicKey",
+		JobDate:   time.Now().Unix(),
+		JobType:   "NewWallet",
+		Nonce:     "util.MakeRandomString(40)",
+		Balance:   []structure.BalanceInfo{structure.BalanceInfo{Balance: totalSupply, TokenId: 0, UnlockDate: 0}}}
+
+	address = "BRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+
+	if err := PutWallet(stub, address, walletData, "NewWallet", []string{address, "publicKey"}); err != nil {
+		return err
+	}
+	return nil
 }

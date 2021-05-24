@@ -57,5 +57,9 @@ echo "======================================="
 
 docker exec $ENV_STR_BRCOIN0 cli peer lifecycle chaincode commit -o $ORDERER_ADDRESS0 --channelID $CHANNEL_NAME --name $CHAINCODE_NAME  --version $CHAINCODE_VERSION --sequence $SEQ --tls --cafile $CA_FILE 
 
+if [ $SEQ == 1 ]; then
+    docker exec $ENV_STR_BRCOIN0 cli peer  chaincode invoke -o $ORDERER_ADDRESS0 --channelID $CHANNEL_NAME --name $CHAINCODE_NAME -c '{"Args":["init"]}' --tls --cafile $CA_FILE 
+fi    
+
 
 
